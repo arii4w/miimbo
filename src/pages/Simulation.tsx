@@ -405,7 +405,7 @@ const handleMonedaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       if (pvSoles > 136000) return `El valor del inmueble no puede superar los S/136,000 (o eq. en USD).`
       if (ifSoles > 3715) return `El ingreso familiar máximo es S/3,715 (o eq. en USD).`
       if (imSoles < 350) return `El ingreso mensual mínimo debe ser de S/350 (o eq. en USD).`
-      if (numNA < 5 || numNA > 25) return 'No se puede pagar el crédito fuera del rango de 5 a 25 años.'
+      //if (numNA < 5 || numNA > 25) return 'No se puede pagar el crédito fuera del rango de 5 a 25 años.'
     }
     return ''
   }, [pvSoles, imSoles, ifSoles, numPCI, numNA, selectedClient])
