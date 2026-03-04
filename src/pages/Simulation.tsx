@@ -245,8 +245,8 @@ export function Simulation() {
     numPCI >= 7.5 &&
     numNA >= 5 &&
     numNA <= 25 &&
-    pvSoles >= 68800 &&
-    pvSoles <= 362100 &&
+    pvSoles >= 57500 &&
+    pvSoles <= 304100 &&
     imSoles >= 1000;
 
   const RequisitosBFH =
@@ -397,7 +397,7 @@ const handleMonedaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       return 'El cliente no puede acceder a bonos porque ya posee una propiedad.'
     }
     if (tipo === 'BuenPagador') {
-      if (pvSoles < 68800 || pvSoles > 362100) return `El valor del inmueble debe estar entre S/68,800 y S/362,100 (o eq. en USD).`
+      if (pvSoles < 57500 || pvSoles > 304100) return `El valor del inmueble debe estar entre S/57,500 y S/304,100 (o eq. en USD).`
       if (imSoles < 1000) return `El ingreso mensual mínimo debe ser de S/1,000 (o eq. en USD).`
       if (numPCI < 7.5) return 'La cuota inicial debe ser de al menos 7.5%.'
       if (numNA < 5 || numNA > 25) return 'No se puede pagar el crédito fuera del rango de 5 a 25 años.'
