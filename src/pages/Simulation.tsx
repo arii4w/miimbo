@@ -251,8 +251,8 @@ export function Simulation() {
 
   const RequisitosBFH =
   numPCI >= minPCI_BFH &&
-    numNA >= 5 &&
-    numNA <= 25 &&
+    //numNA >= 5 &&
+    //numNA <= 25 &&
     pvSoles <= 136000 &&
     ifSoles <= 3715 &&
     imSoles >= 350;
