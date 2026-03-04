@@ -1,11 +1,28 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { miimboColors } from '../theme/colors'
+import { useAuthStore } from '../store/authStore'
+import { useClientsStore } from '../store/clientsStore'
+import { usePropertiesStore } from '../store/propertiesStore'
 
 // Redujimos un poco el padding (px-4 a px-3, py-2.5 a py-2) y el tamaño del texto a text-xs
 const navItemBase =
   'flex items-center gap-3 px-3 py-2 rounded-full text-xs font-medium transition-all duration-200'
 
 export function DashboardLayout() {
+  const navigate = useNavigate()
+  const logout = useAuthStore((state) => state.logout)
+  const clearClients = useClientsStore((state) => state.clear)
+  const clearProperties = usePropertiesStore((state) => state.clear)
+
+  const handleLogout = () => {
+    console.log('[MIIMBO] [DashboardLayout] Cerrar sesión presionado')
+    logout()
+    clearClients()
+    clearProperties()
+    navigate('/login', { replace: true })
+    console.log('[MIIMBO] [DashboardLayout] Redirigiendo a /login')
+  }
+
   return (
     <div
       className="min-h-screen w-full flex"
@@ -58,6 +75,7 @@ export function DashboardLayout() {
           </button>
           <button
             type="button"
+            onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-full px-3 py-2 text-white/90 hover:bg-white/15 transition-colors"
           >
             <Icon name="logout" className="h-3.5 w-3.5" />

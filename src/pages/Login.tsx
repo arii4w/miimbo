@@ -1,24 +1,85 @@
-import { Link, useNavigate } from 'react-router-dom' // 1. Importamos useNavigate
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { miimboColors } from '../theme/colors'
 import pantalla from '../assets/Pantalla.svg'
 import fondoMivivienda from '../assets/fondomivivienda.svg'
 import techoPropio from '../assets/techopropio.svg'
+import { useAuthStore } from '../store/authStore'
+import { useReferenceStore } from '../store/referenceStore'
+import { useClientsStore } from '../store/clientsStore'
+import { usePropertiesStore } from '../store/propertiesStore'
+import { loginApi } from '../services/authApi'
+import { fetchAllReferenceData } from '../services/referenceApi'
+import { fetchClients } from '../services/clientsApi'
+import { fetchProperties } from '../services/propertiesApi'
 
 export function Login() {
-  const navigate = useNavigate() // 2. Inicializamos el hook de navegación
+  const navigate = useNavigate()
+  const setUser = useAuthStore((state) => state.setUser)
+  const setAllReference = useReferenceStore((state) => state.setAll)
+  const setReferenceLoading = useReferenceStore((state) => state.setIsLoading)
+  const setReferenceError = useReferenceStore((state) => state.setError)
+  const setClients = useClientsStore((state) => state.setClients)
+  const setProperties = usePropertiesStore((state) => state.setProperties)
 
-  // 3. Creamos la función que manejará el envío del formulario
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault() // Evita que la página se recargue por defecto
-    
-    // Aquí irían las validaciones en el futuro (las dejamos comentadas)
-    // if (email === '' || password === '') {
-    //   alert('Por favor ingresa tus datos')
-    //   return
-    // }
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-    // Redirige directamente a la ruta Home
-    navigate('/')
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setError(null)
+    console.log('[MIIMBO] [LOGIN] handleLogin iniciado')
+
+    if (!email || !password) {
+      console.log('[MIIMBO] [LOGIN] Validación fallida: campos vacíos')
+      setError('Por favor ingresa tu correo y contraseña')
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      console.log('[MIIMBO] [LOGIN] Llamando loginApi...')
+      const { user } = await loginApi(email, password)
+      console.log('[MIIMBO] [LOGIN] Login OK, guardando usuario')
+      setUser(user)
+
+      try {
+        setReferenceLoading(true)
+        setReferenceError(null)
+        console.log('[MIIMBO] [LOGIN] Cargando datos de referencia...')
+        const referenceData = await fetchAllReferenceData()
+        setAllReference(referenceData)
+        console.log('[MIIMBO] [LOGIN] Datos de referencia OK')
+      } catch (refErr) {
+        console.warn('[MIIMBO] [LOGIN] Error cargando referencia (no bloquea)', refErr)
+        setReferenceError((refErr as Error).message)
+      } finally {
+        setReferenceLoading(false)
+      }
+
+      try {
+        console.log('[MIIMBO] [LOGIN] Cargando clientes y propiedades...')
+        const [clientsData, propertiesData] = await Promise.all([
+          fetchClients(),
+          fetchProperties(),
+        ])
+        setClients([...clientsData].reverse())
+        setProperties([...propertiesData].reverse())
+        console.log('[MIIMBO] [LOGIN] Clientes y propiedades OK')
+      } catch (listErr) {
+        console.warn('[MIIMBO] [LOGIN] Error cargando clientes/propiedades (no bloquea)', listErr)
+      }
+
+      console.log('[MIIMBO] [LOGIN] Navegando a /')
+      navigate('/')
+    } catch (err) {
+      console.warn('[MIIMBO] [LOGIN] Error de login', err)
+      setError((err as Error).message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -28,7 +89,6 @@ export function Login() {
         backgroundImage: `url(${pantalla})`,
       }}
     >
-      {/* Logos esquina inferior */}
       <img
         src={fondoMivivienda}
         alt="Fondo Mivivienda"
@@ -41,7 +101,6 @@ export function Login() {
       />
 
       <div className="relative max-w-[320px] w-full">
-        {/* Marca fuera del formulario */}
         <div className="mb-3 text-center">
           <p
             className="text-[10px] font-semibold tracking-[0.22em] uppercase"
@@ -66,11 +125,21 @@ export function Login() {
             Iniciar Sesión
           </h1>
 
-          {/* 4. Le agregamos el evento onSubmit al formulario */}
+          {error && (
+            <div className="mb-3 flex items-start gap-2 rounded-2xl border border-red-200/70 bg-[rgba(255,242,242,0.9)] px-3 py-2.5 text-[11px] text-red-700 shadow-sm">
+              <span className="mt-[1px] inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-100 text-[10px] font-bold text-red-600">
+                !
+              </span>
+              <span>{error}</span>
+            </div>
+          )}
+
           <form className="space-y-3" onSubmit={handleLogin}>
             <input
               type="email"
               placeholder="Correo Electrónico"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-full border px-4 py-2 text-xs outline-none bg-[rgba(254,251,247,0.95)] placeholder:text-gray-700/70"
               style={{
                 borderColor: 'rgba(255,255,255,0.35)',
@@ -81,6 +150,8 @@ export function Login() {
             <input
               type="password"
               placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-full border px-4 py-2 text-xs outline-none bg-[rgba(254,251,247,0.95)] placeholder:text-gray-700/70"
               style={{
                 borderColor: 'rgba(255,255,255,0.35)',
@@ -90,7 +161,8 @@ export function Login() {
 
             <button
               type="submit"
-              className="mt-4 w-full rounded-full text-xs font-semibold tracking-wide py-2 transition-all hover:scale-[1.02]"
+              disabled={isSubmitting}
+              className="mt-4 w-full rounded-full text-xs font-semibold tracking-wide py-2 transition-all hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
               style={{
                 background: 'rgba(230, 140, 70, 0.3)',
                 color: '#FEFBF7',
@@ -98,7 +170,7 @@ export function Login() {
                 boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
               }}
             >
-              Iniciar Sesión
+              {isSubmitting ? 'Ingresando...' : 'Iniciar Sesión'}
             </button>
           </form>
 
