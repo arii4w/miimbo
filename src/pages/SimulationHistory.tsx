@@ -116,7 +116,19 @@ export function SimulationHistory() {
                       <SummarySection title="Datos Generales">
                         <SummaryItem label="Cliente" value={detailPlan.client ? `${detailPlan.client.name} ${detailPlan.client.lastname}` : '—'} />
                         <SummaryItem label="Inmueble" value={detailPlan.property?.name ?? '—'} />
-                        <SummaryItem label="Bono aplicado" value={detailPlan.bono?.name ?? '—'} />
+                        <SummaryItem label="Bono aplicado" value={detailPlan.bono?.name ?? 'Ninguno'} />
+                        {detailPlan.bono != null && (
+                          <SummaryItem
+                            label="Valor del Bono"
+                            value={formatMoney(
+                              Math.max(
+                                0,
+                                (detailPlan.property?.totalPropertyPrice ?? 0) * (1 - (detailPlan.downPaymentPercentage ?? 0) / 100) -
+                                  (detailPlan.financingBalance ?? 0)
+                              )
+                            )}
+                          />
+                        )}
                       </SummarySection>
                       <SummarySection title="Del Préstamo">
                         <SummaryItem label="Precio de Venta" value={formatNum(detailPlan.property?.totalPropertyPrice)} />
